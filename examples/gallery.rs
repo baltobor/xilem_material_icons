@@ -1,6 +1,6 @@
 //! Icon Gallery - demonstrates all available Material Symbols icons.
 
-use xilem::view::{button, flex_col, flex_row, label, portal, CrossAxisAlignment};
+use xilem::view::{button, flex_col, flex_row, label, portal, CrossAxisAlignment, FlexExt};
 use xilem::style::Style;
 use xilem::masonry::vello::peniko::Color;
 use xilem::masonry::layout::AsUnit;
@@ -187,7 +187,7 @@ fn app_logic(state: &mut AppState) -> impl WidgetView<AppState> {
             .gap(8.px())
             .padding(16.0)
         )
-        .must_fill(true),
+        .flex(1.0),
 
         // Footer (fixed) - shows selected icon
         flex_row((
