@@ -1,0 +1,21 @@
+[package]
+name = "xilem_material_icons"
+version = "0.1.0"
+edition = "2021"
+description = "Material Symbols icons for xilem/masonry applications"
+license = "Apache-2.0"
+repository = "https://github.com/AstroForge-Labs/xilem_material_icons"
+keywords = ["xilem", "masonry", "icons", "material-design", "ui"]
+categories = ["gui"]
+
+[dependencies]
+
+[dev-dependencies]
+xilem = { git = "https://github.com/linebender/xilem", branch = "main" }
+
+[features]
+default = []
+
+[[example]]
+name = "gallery"
+path = "examples/gallery.rs"
