@@ -31,6 +31,9 @@ Run the gallery example:
 cargo run --example gallery
 ```
 
+<img width="972" height="844" alt="GalleryIconsScreenshot" src="https://github.com/user-attachments/assets/cbf1ce7e-5257-41bf-bc74-56dc0d307521" />
+
+
 ## Available Icons
 
 **Navigation**: `CHEVRON_RIGHT`, `CHEVRON_LEFT`, `EXPAND_MORE`, `EXPAND_LESS`, `ARROW_BACK`, `ARROW_FORWARD`, `MENU`, `MORE_VERT`
