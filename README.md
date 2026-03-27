@@ -1,6 +1,6 @@
 # Xilem Material Icons
 
-Material Symbols icons for [Xilem](https://github.com/linebender/xilem) 0.4.0 applications.
+Material Symbols icons for [Xilem](https://github.com/linebender/xilem) applications.
 
 Bundles the [Material Symbols Outlined](https://fonts.google.com/icons) variable font from Google with 150+ icon codepoints ready to use.
 
@@ -14,16 +14,23 @@ xilem_material_icons = "0.1"
 ```
 
 ```rust
-use xilem_material_icons::{FONT_DATA, FONT_FAMILY, icons};
+use xilem_material_icons::{FONT_DATA, icon, icons};
+use xilem::masonry::vello::peniko::Color;
 
 // Register font when creating your app
 let app = Xilem::new(state, app_logic)
     .with_font(FONT_DATA);
 
-// Use icons in views
-label(icons::FOLDER)
-    .font(FONT_FAMILY)
-    .text_size(24.0)
+// Use the icon view
+icon(icons::FOLDER).build()
+icon(icons::SETTINGS).size(24.0).build()
+icon(icons::ERROR).color(Color::RED).build()
+
+// Convenience functions for common sizes
+icon_sm(icons::CHECK).build()  // 16px
+icon_md(icons::CHECK).build()  // 20px (default)
+icon_lg(icons::CHECK).build()  // 24px
+icon_xl(icons::CHECK).build()  // 32px
 ```
 
 Run the gallery example:

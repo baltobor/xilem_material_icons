@@ -9,8 +9,6 @@ keywords = ["xilem", "masonry", "icons", "material-design", "ui"]
 categories = ["gui"]
 
 [dependencies]
-
-[dev-dependencies]
 xilem = { git = "https://github.com/linebender/xilem", branch = "main" }
 
 [features]

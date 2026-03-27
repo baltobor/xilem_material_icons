@@ -15,17 +15,21 @@
 //! # Usage
 //!
 //! ```rust,ignore
-//! use xilem_material_icons::{FONT_DATA, FONT_FAMILY, icons};
+//! use xilem_material_icons::{FONT_DATA, icon, icons};
 //!
 //! // Register the font when creating your xilem app
 //! let app = Xilem::new(state, logic)
 //!     .with_font(FONT_DATA);
 //!
-//! // Use icons in labels
-//! label(icons::FOLDER)
-//!     .font(FONT_FAMILY)
-//!     .text_size(24.0)
+//! // Use the icon view
+//! icon(icons::FOLDER)
+//! icon(icons::SETTINGS).size(24.0).color(Color::RED)
 //! ```
+
+use xilem::masonry::vello::peniko::Color;
+use xilem::style::Style;
+use xilem::view::label;
+use xilem::AnyWidgetView;
 
 /// The Material Symbols Outlined font data (TTF format).
 ///
@@ -40,6 +44,107 @@ pub const ICON_SIZE_SM: f32 = 16.0;
 pub const ICON_SIZE_MD: f32 = 20.0;
 pub const ICON_SIZE_LG: f32 = 24.0;
 pub const ICON_SIZE_XL: f32 = 32.0;
+
+/// A Material Symbol icon view.
+///
+/// Use the [`icon`] function to create an icon, then chain methods to customize it.
+///
+/// # Example
+///
+/// ```rust,ignore
+/// use xilem_material_icons::{icon, icons};
+/// use xilem::masonry::vello::peniko::Color;
+///
+/// // Basic icon (default size: 20px)
+/// icon(icons::FOLDER)
+///
+/// // Customized icon
+/// icon(icons::SETTINGS)
+///     .size(24.0)
+///     .color(Color::from_rgb8(100, 180, 100))
+/// ```
+#[derive(Clone)]
+pub struct Icon {
+    codepoint: &'static str,
+    size: f32,
+    color: Option<Color>,
+}
+
+impl Icon {
+    /// Creates a new icon with the given codepoint.
+    pub fn new(codepoint: &'static str) -> Self {
+        Self {
+            codepoint,
+            size: ICON_SIZE_MD,
+            color: None,
+        }
+    }
+
+    /// Sets the icon size in pixels.
+    pub fn size(mut self, size: f32) -> Self {
+        self.size = size;
+        self
+    }
+
+    /// Sets the icon color.
+    pub fn color(mut self, color: Color) -> Self {
+        self.color = Some(color);
+        self
+    }
+
+    /// Builds the icon as a xilem view.
+    pub fn build<State: 'static, Action: 'static>(self) -> Box<AnyWidgetView<State, Action>> {
+        let lbl = label(self.codepoint)
+            .font(FONT_FAMILY)
+            .text_size(self.size);
+
+        if let Some(color) = self.color {
+            Box::new(lbl.color(color))
+        } else {
+            Box::new(lbl)
+        }
+    }
+}
+
+/// Creates a Material Symbol icon view.
+///
+/// # Arguments
+///
+/// * `codepoint` - The icon codepoint from the [`icons`] module.
+///
+/// # Example
+///
+/// ```rust,ignore
+/// use xilem_material_icons::{icon, icons};
+///
+/// // In your view function
+/// icon(icons::FOLDER)
+/// icon(icons::CHECK).size(16.0)
+/// icon(icons::ERROR).color(Color::RED)
+/// ```
+pub fn icon(codepoint: &'static str) -> Icon {
+    Icon::new(codepoint)
+}
+
+/// Creates a small icon (16px).
+pub fn icon_sm(codepoint: &'static str) -> Icon {
+    Icon::new(codepoint).size(ICON_SIZE_SM)
+}
+
+/// Creates a medium icon (20px, default).
+pub fn icon_md(codepoint: &'static str) -> Icon {
+    Icon::new(codepoint).size(ICON_SIZE_MD)
+}
+
+/// Creates a large icon (24px).
+pub fn icon_lg(codepoint: &'static str) -> Icon {
+    Icon::new(codepoint).size(ICON_SIZE_LG)
+}
+
+/// Creates an extra-large icon (32px).
+pub fn icon_xl(codepoint: &'static str) -> Icon {
+    Icon::new(codepoint).size(ICON_SIZE_XL)
+}
 
 /// Material Symbols icon codepoints.
 ///
