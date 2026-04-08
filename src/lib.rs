@@ -26,7 +26,7 @@
 //! icon(icons::SETTINGS).size(24.0).color(Color::RED)
 //! ```
 
-use xilem::masonry::vello::peniko::Color;
+use xilem::masonry::peniko::Color;
 use xilem::style::Style;
 use xilem::view::label;
 use xilem::AnyWidgetView;
@@ -53,7 +53,7 @@ pub const ICON_SIZE_XL: f32 = 32.0;
 ///
 /// ```rust,ignore
 /// use xilem_material_icons::{icon, icons};
-/// use xilem::masonry::vello::peniko::Color;
+/// use xilem::masonry::peniko::Color;
 ///
 /// // Basic icon (default size: 20px)
 /// icon(icons::FOLDER)

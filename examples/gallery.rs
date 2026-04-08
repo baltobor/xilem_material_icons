@@ -2,7 +2,7 @@
 
 use xilem::view::{button, flex_col, flex_row, label, portal, CrossAxisAlignment, FlexExt};
 use xilem::style::Style;
-use xilem::masonry::vello::peniko::Color;
+use xilem::masonry::peniko::Color;
 use xilem::masonry::layout::AsUnit;
 use xilem::{EventLoop, WidgetView, WindowOptions, Xilem};
 
