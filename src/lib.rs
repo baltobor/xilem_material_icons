@@ -304,6 +304,11 @@ pub mod icons {
     pub const BUG_REPORT: &str = "\u{e868}";
     pub const BUILD: &str = "\u{e869}";
     pub const TERMINAL: &str = "\u{eb8e}";
+    pub const MEMORY: &str = "\u{e322}";
+    pub const ACCOUNT_TREE: &str = "\u{e97a}";
+    pub const COMMIT: &str = "\u{e97c}";
+    pub const PENDING: &str = "\u{ef64}";
+    pub const LIGHTBULB: &str = "\u{e0f0}";
 
     // Window controls
     pub const FULLSCREEN: &str = "\u{e5d0}";
@@ -312,6 +317,9 @@ pub mod icons {
     pub const LAUNCH: &str = "\u{e895}";
     pub const MINIMIZE: &str = "\u{e931}";
     pub const MAXIMIZE: &str = "\u{e930}";
+    pub const VIEW_SIDEBAR: &str = "\u{f114}";
+    pub const VERTICAL_SPLIT: &str = "\u{e949}";
+    pub const HORIZONTAL_SPLIT: &str = "\u{e947}";
 
     // Lock
     pub const LOCK: &str = "\u{e897}";

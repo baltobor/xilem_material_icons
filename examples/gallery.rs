@@ -170,6 +170,28 @@ fn app_logic(state: &mut AppState) -> impl WidgetView<AppState> {
                     (icons::SHARE, "share"),
                 ], selected),
 
+                // Code and Development
+                section("Development", vec![
+                    (icons::CODE, "code"),
+                    (icons::TERMINAL, "terminal"),
+                    (icons::BUG_REPORT, "bug"),
+                    (icons::BUILD, "build"),
+                    (icons::MEMORY, "memory"),
+                    (icons::ACCOUNT_TREE, "tree"),
+                    (icons::COMMIT, "commit"),
+                    (icons::PENDING, "pending"),
+                    (icons::LIGHTBULB, "idea"),
+                ], selected),
+
+                // Layout
+                section("Layout", vec![
+                    (icons::VIEW_SIDEBAR, "sidebar"),
+                    (icons::VERTICAL_SPLIT, "v_split"),
+                    (icons::HORIZONTAL_SPLIT, "h_split"),
+                    (icons::FULLSCREEN, "fullscreen"),
+                    (icons::FULLSCREEN_EXIT, "exit_fs"),
+                ], selected),
+
                 // Misc
                 section("Misc", vec![
                     (icons::HOME, "home"),
@@ -179,8 +201,6 @@ fn app_logic(state: &mut AppState) -> impl WidgetView<AppState> {
                     (icons::LOCK_OPEN, "unlock"),
                     (icons::DARK_MODE, "dark"),
                     (icons::LIGHT_MODE, "light"),
-                    (icons::CODE, "code"),
-                    (icons::TERMINAL, "terminal"),
                     (icons::PEDAL_BIKE, "bike"),
                 ], selected),
             ))
