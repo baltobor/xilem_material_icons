@@ -192,11 +192,38 @@ fn app_logic(state: &mut AppState) -> impl WidgetView<AppState> {
                     (icons::FULLSCREEN_EXIT, "exit_fs"),
                 ], selected),
 
+                // Business
+                section("Business", vec![
+                    (icons::BUSINESS, "business"),
+                    (icons::FACTORY, "factory"),
+                    (icons::INVENTORY, "inventory"),
+                    (icons::CATEGORY, "category"),
+                    (icons::LOCAL_SHIPPING, "shipping"),
+                    (icons::KEY, "key"),
+                ], selected),
+
+                // Communication
+                section("Communication", vec![
+                    (icons::PERSON, "person"),
+                    (icons::PEOPLE, "people"),
+                    (icons::GROUP, "group"),
+                    (icons::EMAIL, "email"),
+                    (icons::PHONE, "phone"),
+                ], selected),
+
+                // Views
+                section("Views", vec![
+                    (icons::TABLE_VIEW, "table"),
+                    (icons::LIST, "list"),
+                    (icons::GRID_VIEW, "grid"),
+                    (icons::SORT, "sort"),
+                    (icons::FILTER_LIST, "filter"),
+                ], selected),
+
                 // Misc
                 section("Misc", vec![
                     (icons::HOME, "home"),
-                    (icons::PERSON, "person"),
-                    (icons::GROUP, "group"),
+                    (icons::WORK, "work"),
                     (icons::LOCK, "lock"),
                     (icons::LOCK_OPEN, "unlock"),
                     (icons::DARK_MODE, "dark"),

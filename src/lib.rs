@@ -348,6 +348,23 @@ pub mod icons {
     pub const TRANSLATE: &str = "\u{e8e2}";
     pub const DARK_MODE: &str = "\u{e51c}";
     pub const LIGHT_MODE: &str = "\u{e518}";
+
+    // Business and logistics
+    pub const BUSINESS: &str = "\u{e7ee}";
+    pub const FACTORY: &str = "\u{ebbc}";
+    pub const LOCAL_SHIPPING: &str = "\u{e558}";
+    pub const INVENTORY: &str = "\u{e179}";
+    pub const CATEGORY: &str = "\u{e574}";
+    pub const KEY: &str = "\u{e73c}";
+
+    // People
+    pub const PEOPLE: &str = "\u{ea21}";
+    pub const PHONE: &str = "\u{f0d4}";
+
+    // Views
+    pub const TABLE_VIEW: &str = "\u{f1be}";
+    pub const LIST: &str = "\u{e896}";
+    pub const GRID_VIEW: &str = "\u{e9b0}";
 }
 
 #[cfg(test)]
