@@ -40,7 +40,9 @@ fn main() {
             continue;
         }
         let mut parts = line.split_whitespace();
-        let (Some(name), Some(hex)) = (parts.next(), parts.next()) else { continue };
+        let (Some(name), Some(hex)) = (parts.next(), parts.next()) else {
+            continue;
+        };
 
         // Validate hex: 4–6 hex chars, parseable.
         let cp = match u32::from_str_radix(hex, 16) {
@@ -62,14 +64,9 @@ fn main() {
         count += 1;
     }
 
-    fs::write(&out_path, &out)
-        .unwrap_or_else(|e| panic!("write {}: {e}", out_path.display()));
+    fs::write(&out_path, &out).unwrap_or_else(|e| panic!("write {}: {e}", out_path.display()));
 
-    println!(
-        "Wrote {} icon constants to {}",
-        count,
-        out_path.display()
-    );
+    println!("Wrote {} icon constants to {}", count, out_path.display());
 }
 
 /// Map Google's `snake_case_with_optional_leading_digits` to a valid

@@ -17,7 +17,7 @@
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
-use xilem::masonry::layout::AsUnit;
+use xilem::masonry::layout::{AsUnit, Length};
 use xilem::masonry::peniko::Color;
 use xilem::style::Style;
 use xilem::view::{
@@ -25,7 +25,7 @@ use xilem::view::{
 };
 use xilem::{EventLoop, WidgetView, WindowOptions, Xilem};
 
-use xilem_material_icons::{icons, FONT_DATA, FONT_FAMILY, ICON_SIZE_LG};
+use xilem_material_icons::{icons, FONT_FAMILY, ICON_SIZE_LG};
 
 const TEXT_COLOR: Color = Color::from_rgb8(220, 218, 214);
 const TEXT_SECONDARY: Color = Color::from_rgb8(160, 156, 150);
@@ -67,7 +67,9 @@ fn catalogue() -> &'static Catalogue {
                 continue;
             }
             let mut parts = line.split_whitespace();
-            let (Some(name), Some(hex)) = (parts.next(), parts.next()) else { continue };
+            let (Some(name), Some(hex)) = (parts.next(), parts.next()) else {
+                continue;
+            };
             let cp = match u32::from_str_radix(hex, 16) {
                 Ok(v) => v,
                 Err(_) => continue,
@@ -75,7 +77,13 @@ fn catalogue() -> &'static Catalogue {
             let glyph_str: String = char::from_u32(cp).unwrap_or('?').to_string();
             let glyph: &'static str = Box::leak(glyph_str.into_boxed_str());
             let name_static: &'static str = Box::leak(name.to_string().into_boxed_str());
-            by_name.insert(name_static, IconEntry { name: name_static, glyph });
+            by_name.insert(
+                name_static,
+                IconEntry {
+                    name: name_static,
+                    glyph,
+                },
+            );
         }
 
         // ---- Parse categories (subset; some newest icons are not
@@ -89,13 +97,12 @@ fn catalogue() -> &'static Catalogue {
                 continue;
             }
             let mut parts = line.splitn(2, '\t');
-            let (Some(cat), Some(name)) = (parts.next(), parts.next()) else { continue };
+            let (Some(cat), Some(name)) = (parts.next(), parts.next()) else {
+                continue;
+            };
             // Only include icons we actually have a glyph for.
             if let Some(entry) = by_name.get(name).copied() {
-                buckets
-                    .entry(cat.to_string())
-                    .or_default()
-                    .push(entry.name);
+                buckets.entry(cat.to_string()).or_default().push(entry.name);
             }
         }
         let mut categories: Vec<(String, Vec<&'static str>)> = buckets.into_iter().collect();
@@ -108,7 +115,10 @@ fn catalogue() -> &'static Catalogue {
         let all: Vec<&'static str> = by_name.keys().copied().collect();
         categories.insert(0, ("All".to_string(), all));
 
-        Catalogue { by_name, categories }
+        Catalogue {
+            by_name,
+            categories,
+        }
     })
 }
 
@@ -124,7 +134,11 @@ struct AppState {
 
 fn icon_button(entry: IconEntry, selected: Option<&'static str>) -> impl WidgetView<AppState> {
     let is_selected = selected == Some(entry.glyph);
-    let bg = if is_selected { ACCENT } else { Color::TRANSPARENT };
+    let bg = if is_selected {
+        ACCENT
+    } else {
+        Color::TRANSPARENT
+    };
     let glyph = entry.glyph;
     let name = entry.name;
 
@@ -140,7 +154,7 @@ fn icon_button(entry: IconEntry, selected: Option<&'static str>) -> impl WidgetV
         ))
         .cross_axis_alignment(CrossAxisAlignment::Center)
         .gap(4.px())
-        .padding(6.0),
+        .padding(Length::px(6.0)),
         move |state: &mut AppState| {
             state.selected_glyph = Some(glyph);
             state.selected_name = Some(name);
@@ -149,7 +163,12 @@ fn icon_button(entry: IconEntry, selected: Option<&'static str>) -> impl WidgetV
     .background_color(bg)
 }
 
-fn tab_button(idx: usize, label_text: &str, count: usize, active: bool) -> impl WidgetView<AppState> + use<'_> {
+fn tab_button(
+    idx: usize,
+    label_text: &str,
+    count: usize,
+    active: bool,
+) -> impl WidgetView<AppState> + use<'_> {
     let bg = if active { ACCENT } else { BG_TAB_INACTIVE };
     let fg = if active { BG_DARK } else { TEXT_COLOR };
     button(
@@ -163,7 +182,7 @@ fn tab_button(idx: usize, label_text: &str, count: usize, active: bool) -> impl 
                 .color(if active { BG_DARK } else { TEXT_SECONDARY }),
         ))
         .gap(6.px())
-        .padding(8.0),
+        .padding(Length::px(8.0)),
         move |state: &mut AppState| {
             state.active_tab = idx;
             state.filter.clear();
@@ -225,7 +244,7 @@ fn app_logic(state: &mut AppState) -> impl WidgetView<AppState> {
     ))
     .cross_axis_alignment(CrossAxisAlignment::Center)
     .gap(12.px())
-    .padding(16.0);
+    .padding(Length::px(16.0));
 
     // Tab strip. Wraps via a scrolling portal so it doesn't blow the
     // window width when there are many categories.
@@ -233,14 +252,12 @@ fn app_logic(state: &mut AppState) -> impl WidgetView<AppState> {
         .categories
         .iter()
         .enumerate()
-        .map(|(i, (name, names))| {
-            tab_button(i, name, names.len(), i == active_tab).boxed()
-        })
+        .map(|(i, (name, names))| tab_button(i, name, names.len(), i == active_tab).boxed())
         .collect();
     let tab_strip = portal(
         flex_row(tab_views)
             .gap(4.px())
-            .padding(8.0)
+            .padding(Length::px(8.0))
             .background_color(BG_SECTION),
     );
 
@@ -256,10 +273,7 @@ fn app_logic(state: &mut AppState) -> impl WidgetView<AppState> {
         label("Selected:").text_size(14.0).color(TEXT_SECONDARY),
         match (state.selected_glyph, state.selected_name) {
             (Some(glyph), Some(name)) => flex_row((
-                label(glyph)
-                    .font(FONT_FAMILY)
-                    .text_size(32.0)
-                    .color(ACCENT),
+                label(glyph).font(FONT_FAMILY).text_size(32.0).color(ACCENT),
                 flex_col((
                     label(name).text_size(13.0).color(TEXT_COLOR),
                     label(format!(
@@ -287,17 +301,17 @@ fn app_logic(state: &mut AppState) -> impl WidgetView<AppState> {
     ))
     .cross_axis_alignment(CrossAxisAlignment::Center)
     .gap(16.px())
-    .padding(16.0)
+    .padding(Length::px(16.0))
     .background_color(BG_SECTION);
 
     flex_col((
         header,
         tab_strip,
-        flex_row((search.flex(1.0),)).padding(12.0),
+        flex_row((search.flex(1.0),)).padding(Length::px(12.0)),
         portal(
             flex_col(rows)
                 .gap(4.px())
-                .padding(12.0)
+                .padding(Length::px(12.0))
                 .background_color(BG_SECTION),
         )
         .flex(1.0),
@@ -313,8 +327,7 @@ fn main() {
         app_logic,
         WindowOptions::new("Material Icons Gallery")
             .with_initial_inner_size(xilem::winit::dpi::LogicalSize::new(1100.0, 760.0)),
-    )
-    .with_font(FONT_DATA.to_vec());
+    );
 
     app.run_in(EventLoop::with_user_event()).unwrap();
 }

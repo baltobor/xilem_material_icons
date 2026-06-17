@@ -14,26 +14,35 @@
 //!
 //! # Usage
 //!
+//! The font registers itself automatically the first time any icon is laid out
+//! in a window.  No `.with_font()` call is needed:
+//!
 //! ```rust,ignore
-//! use xilem_material_icons::{FONT_DATA, icon, icons};
+//! use xilem_material_icons::{icon, icons};
 //!
-//! // Register the font when creating your xilem app
-//! let app = Xilem::new(state, logic)
-//!     .with_font(FONT_DATA);
-//!
-//! // Use the icon view
+//! // Use icons anywhere in your view tree — they work in every window
 //! icon(icons::FOLDER)
 //! icon(icons::SETTINGS).size(24.0).color(Color::RED)
 //! ```
 
-use xilem::masonry::peniko::Color;
+use std::sync::{Arc, OnceLock};
+
+use xilem::core::{MessageCtx, MessageResult, Mut, View, ViewMarker};
+use xilem::masonry::accesskit::{Node, Role};
+use xilem::masonry::core::{
+    AccessCtx, AccessEvent, ChildrenIds, EventCtx, LayoutCtx, MeasureCtx, NoAction, PaintCtx,
+    PointerEvent, PropertiesMut, PropertiesRef, RegisterCtx, TextEvent, Update, UpdateCtx, Widget,
+    WidgetMut,
+};
+use xilem::masonry::imaging::Painter;
+use xilem::masonry::kurbo::{Axis, Size};
+use xilem::masonry::layout::{AsUnit, LenReq, Length};
+use xilem::masonry::peniko::{Blob, Color};
 use xilem::style::Style;
 use xilem::view::label;
-use xilem::AnyWidgetView;
+use xilem::{AnyWidgetView, Pod, ViewCtx};
 
 /// The Material Symbols Outlined font data (TTF format).
-///
-/// Pass this to `Xilem::with_font()` to register the font.
 pub const FONT_DATA: &[u8] = include_bytes!("../assets/MaterialSymbolsOutlined.ttf");
 
 /// The font family name to use with labels.
@@ -45,9 +54,172 @@ pub const ICON_SIZE_MD: f32 = 20.0;
 pub const ICON_SIZE_LG: f32 = 24.0;
 pub const ICON_SIZE_XL: f32 = 32.0;
 
+// --- Font blob singleton ---
+
+// The Blob wraps an Arc, so cloning it is cheap (pointer copy, no data copy).
+// We create it once here so every FontRegistrar widget shares the same Arc.
+fn font_blob() -> Blob<u8> {
+    static BLOB: OnceLock<Blob<u8>> = OnceLock::new();
+    BLOB.get_or_init(|| Blob::new(Arc::new(FONT_DATA))).clone()
+}
+
+// --- Font self-registration widget ---
+
+/// Zero-size masonry widget that registers the Material Symbols font into the
+/// per-window `FontContext` on first layout, then becomes a no-op.
+///
+/// One instance lives in the view tree for each icon. The first one encountered
+/// in a window registers the font; all subsequent ones in that window skip the
+/// call because their `registered` flag is `true`.
+#[derive(Debug)]
+struct FontRegistrar {
+    /// True once the font has been registered in this widget's window.
+    registered: bool,
+}
+
+impl FontRegistrar {
+    fn new() -> Self {
+        Self { registered: false }
+    }
+
+    fn register_if_needed(&mut self, font_ctx: &mut xilem::masonry::parley::FontContext) {
+        if self.registered {
+            return;
+        }
+        font_ctx.collection.register_fonts(font_blob(), None);
+        self.registered = true;
+    }
+}
+
+impl Widget for FontRegistrar {
+    type Action = NoAction;
+
+    fn on_pointer_event(
+        &mut self,
+        _ctx: &mut EventCtx<'_>,
+        _props: &mut PropertiesMut<'_>,
+        _event: &PointerEvent,
+    ) {
+    }
+
+    fn on_text_event(
+        &mut self,
+        _ctx: &mut EventCtx<'_>,
+        _props: &mut PropertiesMut<'_>,
+        _event: &TextEvent,
+    ) {
+    }
+
+    fn on_access_event(
+        &mut self,
+        _ctx: &mut EventCtx<'_>,
+        _props: &mut PropertiesMut<'_>,
+        _event: &AccessEvent,
+    ) {
+    }
+
+    fn register_children(&mut self, _ctx: &mut RegisterCtx<'_>) {}
+
+    fn update(&mut self, _ctx: &mut UpdateCtx<'_>, _props: &mut PropertiesMut<'_>, event: &Update) {
+        // Allow re-registration if the font context was reset (suspend/resume).
+        if matches!(event, Update::FontsChanged) {
+            self.registered = false;
+        }
+    }
+
+    fn measure(
+        &mut self,
+        ctx: &mut MeasureCtx<'_>,
+        _props: &PropertiesRef<'_>,
+        _axis: Axis,
+        _len_req: LenReq,
+        _cross_length: Option<Length>,
+    ) -> Length {
+        self.register_if_needed(ctx.text_contexts().0);
+        0.0_f64.px()
+    }
+
+    fn layout(&mut self, ctx: &mut LayoutCtx<'_>, _props: &PropertiesRef<'_>, _size: Size) {
+        self.register_if_needed(ctx.text_contexts().0);
+    }
+
+    fn paint(
+        &mut self,
+        _ctx: &mut PaintCtx<'_>,
+        _props: &PropertiesRef<'_>,
+        _painter: &mut Painter<'_>,
+    ) {
+    }
+
+    fn accessibility_role(&self) -> Role {
+        Role::GenericContainer
+    }
+
+    fn accessibility(
+        &mut self,
+        _ctx: &mut AccessCtx<'_>,
+        _props: &PropertiesRef<'_>,
+        _node: &mut Node,
+    ) {
+    }
+
+    fn children_ids(&self) -> ChildrenIds {
+        ChildrenIds::new()
+    }
+}
+
+// --- FontRegistrar view ---
+
+#[derive(Clone)]
+struct FontRegistrarView;
+
+impl ViewMarker for FontRegistrarView {}
+
+impl<State: 'static, Action: 'static> View<State, Action, ViewCtx> for FontRegistrarView {
+    type Element = Pod<FontRegistrar>;
+    type ViewState = ();
+
+    fn build(&self, ctx: &mut ViewCtx, _: &mut State) -> (Self::Element, Self::ViewState) {
+        (ctx.create_pod(FontRegistrar::new()), ())
+    }
+
+    fn rebuild(
+        &self,
+        _prev: &Self,
+        (): &mut Self::ViewState,
+        _ctx: &mut ViewCtx,
+        _element: Mut<'_, Self::Element>,
+        _: &mut State,
+    ) {
+    }
+
+    fn teardown(
+        &self,
+        (): &mut Self::ViewState,
+        _ctx: &mut ViewCtx,
+        _element: Mut<'_, Self::Element>,
+    ) {
+    }
+
+    fn message(
+        &self,
+        (): &mut Self::ViewState,
+        _message: &mut MessageCtx,
+        _element: WidgetMut<'_, FontRegistrar>,
+        _app_state: &mut State,
+    ) -> MessageResult<Action> {
+        MessageResult::Stale
+    }
+}
+
+// --- Public API ---
+
 /// A Material Symbol icon view.
 ///
 /// Use the [`icon`] function to create an icon, then chain methods to customize it.
+///
+/// The font registers itself automatically into whichever window the icon first
+/// appears in — no `.with_font()` call needed.
 ///
 /// # Example
 ///
@@ -55,13 +227,8 @@ pub const ICON_SIZE_XL: f32 = 32.0;
 /// use xilem_material_icons::{icon, icons};
 /// use xilem::masonry::peniko::Color;
 ///
-/// // Basic icon (default size: 20px)
 /// icon(icons::FOLDER)
-///
-/// // Customized icon
-/// icon(icons::SETTINGS)
-///     .size(24.0)
-///     .color(Color::from_rgb8(100, 180, 100))
+/// icon(icons::SETTINGS).size(24.0).color(Color::from_rgb8(100, 180, 100))
 /// ```
 #[derive(Clone)]
 pub struct Icon {
@@ -93,31 +260,37 @@ impl Icon {
     }
 
     /// Builds the icon as a xilem view.
+    ///
+    /// Embeds a zero-size [`FontRegistrar`] widget that registers the Material
+    /// Symbols font into the window's `FontContext` on first layout. This makes
+    /// icons work in every window — including secondary windows opened after
+    /// app startup — without any setup from the caller.
     pub fn build<State: 'static, Action: 'static>(self) -> Box<AnyWidgetView<State, Action>> {
-        let lbl = label(self.codepoint)
-            .font(FONT_FAMILY)
-            .text_size(self.size);
+        let lbl = label(self.codepoint).font(FONT_FAMILY).text_size(self.size);
 
-        if let Some(color) = self.color {
+        let lbl_view: Box<AnyWidgetView<State, Action>> = if let Some(color) = self.color {
             Box::new(lbl.color(color))
         } else {
             Box::new(lbl)
-        }
+        };
+
+        // FontRegistrarView is zero-size; flex_col stacks it above the label.
+        // The column is clamped to icon size so the registrar takes no space.
+        Box::new(
+            xilem::view::flex_col((FontRegistrarView, lbl_view))
+                .width(Length::px(self.size as f64))
+                .height(Length::px(self.size as f64)),
+        )
     }
 }
 
 /// Creates a Material Symbol icon view.
-///
-/// # Arguments
-///
-/// * `codepoint` - The icon codepoint from the [`icons`] module.
 ///
 /// # Example
 ///
 /// ```rust,ignore
 /// use xilem_material_icons::{icon, icons};
 ///
-/// // In your view function
 /// icon(icons::FOLDER)
 /// icon(icons::CHECK).size(16.0)
 /// icon(icons::ERROR).color(Color::RED)
@@ -162,7 +335,6 @@ pub mod icons {
     include!("icons_generated.rs");
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -179,7 +351,6 @@ mod tests {
 
     #[test]
     fn icon_codepoints_are_valid_unicode() {
-        // Test a few icons to ensure they are valid strings
         assert!(!icons::FOLDER.is_empty());
         assert!(!icons::CHECK.is_empty());
         assert!(!icons::CLOSE.is_empty());
