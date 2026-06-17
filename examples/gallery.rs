@@ -25,7 +25,7 @@ use xilem::view::{
 };
 use xilem::{EventLoop, WidgetView, WindowOptions, Xilem};
 
-use xilem_material_icons::{icons, FONT_FAMILY, ICON_SIZE_LG};
+use xilem_material_icons::{icons, FONT_DATA, FONT_FAMILY, ICON_SIZE_LG};
 
 const TEXT_COLOR: Color = Color::from_rgb8(220, 218, 214);
 const TEXT_SECONDARY: Color = Color::from_rgb8(160, 156, 150);
@@ -327,7 +327,8 @@ fn main() {
         app_logic,
         WindowOptions::new("Material Icons Gallery")
             .with_initial_inner_size(xilem::winit::dpi::LogicalSize::new(1100.0, 760.0)),
-    );
+    )
+    .with_font(FONT_DATA.to_vec());
 
     app.run_in(EventLoop::with_user_event()).unwrap();
 }
